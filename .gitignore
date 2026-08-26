@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+.tools/
+dist/
+build/pyinstaller/
+build/*.spec
+placebo.cfg
+placebo_results.csv
+placebo_results.json
