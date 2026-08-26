@@ -216,10 +216,4 @@ Inno Setup 6 is only required if you want to generate the installer.
 
 The GitHub Actions build can handle this automatically for releases.
 
-## Windows publisher information
 
-The executable and installer can display publisher/product information for **C2K FPS Perception Test**.
-
-However, Windows will only show a trusted **Verified publisher** message if the executable is digitally signed using a trusted Authenticode certificate.
-
-A private signing certificate or signing key should never be committed to a public GitHub repository.
