@@ -14,11 +14,11 @@ VSVersionInfo(
       StringTable(
         u'040904B0',
         [
-          StringStruct(u'CompanyName', u'CS2Kitchen'),
+          StringStruct(u'CompanyName', u'cs2kitchen'),
           StringStruct(u'FileDescription', u'C2K FPS Perception Test'),
           StringStruct(u'FileVersion', u'1.0.0'),
           StringStruct(u'InternalName', u'C2K FPS Perception Test'),
-          StringStruct(u'LegalCopyright', u'Copyright (c) 2026 CS2Kitchen'),
+          StringStruct(u'LegalCopyright', u'Copyright (c) 2026 cs2kitchen'),
           StringStruct(u'OriginalFilename', u'C2K FPS Perception Test.exe'),
           StringStruct(u'ProductName', u'C2K FPS Perception Test'),
           StringStruct(u'ProductVersion', u'1.0.0')

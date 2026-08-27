@@ -6,11 +6,11 @@
 AppId={{A5572697-5B02-456A-9B57-706B6D9925AB}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-AppPublisher=CS2Kitchen
-VersionInfoCompany=CS2Kitchen
+AppPublisher=cs2kitchen
+VersionInfoCompany=cs2kitchen
 VersionInfoDescription=Blind FPS perception testing for Counter-Strike 2
 VersionInfoVersion=1.0.0.0
-VersionInfoCopyright=Copyright (c) 2026 CS2Kitchen
+VersionInfoCopyright=Copyright (c) 2026 cs2kitchen
 DefaultDirName={localappdata}\Programs\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
@@ -31,7 +31,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts"; Flags: unchecked
 
 [Files]
-Source: "..\dist\C2K FPS Perception Test\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\C2K FPS Perception Test.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\C2K FPS Perception Test"; Filename: "{app}\{#MyAppExeName}"

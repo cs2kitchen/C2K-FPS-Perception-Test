@@ -2,7 +2,7 @@
 
 A blind FPS comparison tool for Counter-Strike 2 that I built to test whether different FPS levels actually feel different without knowing which one is active.
 
-You can use the **installer or standalone EXE directly** from the Releases page. You do not need Python, an IDE, or any coding knowledge unless you specifically want to run or modify the source code.
+You can use the **installer or standalone EXE directly** from the [Releases](https://github.com/cs2kitchen/C2K-FPS-Perception-Test/releases) page. You do not need Python, an IDE, or any coding knowledge unless you specifically want to run or modify the source code.
 
 ## Safety
 
@@ -72,7 +72,7 @@ fps_max 240
 fps_max 0
 ```
 
-`fps_max 0` means uncapped.
+`fps_max 0` means **Uncapped**. Capped choices are shown as `fps_max 64`, `fps_max 144`, and so on.
 
 The CFG also creates aliases and binds used by the blind test so the program can switch between the RED and BLUE FPS values without telling you which FPS value is currently active.
 
@@ -88,7 +88,7 @@ The program does not hide the CFG or its commands.
 
 ## Easiest way to use it
 
-Go to the **Releases** section of this GitHub repository.
+Go to the [**Releases**](https://github.com/cs2kitchen/C2K-FPS-Perception-Test/releases) section of this GitHub repository.
 
 You can either:
 
@@ -200,20 +200,32 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m app.main
 ```
 
-Normal users can ignore this entire section and simply use the installer or EXE from Releases.
+Normal users can ignore this entire section and simply use the installer or EXE from [Releases](https://github.com/cs2kitchen/C2K-FPS-Perception-Test/releases).
 
 ## Building the Windows version
 
-If you want to build the application yourself:
+The easiest way to build every available Windows package is:
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements-build.txt
-.\build\build.ps1 -SkipInstall
+.\build_release.bat
 ```
 
-Inno Setup 6 is only required if you want to generate the installer.
+The script creates a local `.venv`, installs the pinned build requirements, and builds as much as the available toolchain supports. Output is written to `dist`:
 
-The GitHub Actions build can handle this automatically for releases.
+```text
+C2K FPS Perception Test.exe
+C2K FPS Perception Test Portable.zip
+C2K FPS Perception Test Setup.exe
+```
+
+The standalone EXE and portable ZIP do not require Python on the target computer. Inno Setup 6 is required only for `C2K FPS Perception Test Setup.exe`; if it is unavailable, the script still builds the standalone outputs and explains how to enable the installer build.
+
+You can also run the PowerShell build directly:
+
+```powershell
+.\build\build.ps1
+```
+
+The GitHub Actions build can handle this automatically for [releases](https://github.com/cs2kitchen/C2K-FPS-Perception-Test/releases).
 
 

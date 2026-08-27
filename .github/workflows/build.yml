@@ -29,6 +29,9 @@ jobs:
       - name: Install build dependencies
         run: python -m pip install -r requirements-build.txt
 
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+
       - name: Ensure Inno Setup is available
         shell: powershell
         run: |
@@ -39,14 +42,14 @@ jobs:
 
       - name: Build application and installer
         shell: powershell
-        run: .\build\build.ps1 -SkipInstall
+        run: .\build\build.ps1 -SkipInstall -RequireInstaller
 
       - name: Upload standalone build
         uses: actions/upload-artifact@v4
         with:
           name: C2K FPS Perception Test Portable
           path: |
-            dist/C2K FPS Perception Test/**
+            dist/C2K FPS Perception Test.exe
             dist/C2K FPS Perception Test Portable.zip
 
       - name: Upload installer
@@ -61,5 +64,6 @@ jobs:
         with:
           generate_release_notes: true
           files: |
+            dist/C2K FPS Perception Test.exe
             dist/C2K FPS Perception Test Setup.exe
             dist/C2K FPS Perception Test Portable.zip

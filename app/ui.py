@@ -21,6 +21,7 @@ from app.results import (
     comparison_statistics,
     cumulative_duration_seconds,
     discover_result_sessions,
+    fps_label,
     format_duration,
 )
 from app.settings import APP_NAME, PRESET_LEVELS, AppSettings, load_settings, resource_path
@@ -274,7 +275,7 @@ class C2KApp:
         self.preset_frame = self._surface(
             self.mode_holder,
             "Preset comparisons",
-            "Each enabled level is compared with fps_max 0 and analysed independently.",
+            "Each enabled level is compared with Uncapped (fps_max 0) and analysed independently.",
         )
         header = ttk.Frame(self.preset_frame, style="Surface.TFrame")
         header.pack(fill="x", pady=(0, 4))
@@ -287,14 +288,14 @@ class C2KApp:
             row = ttk.Frame(self.preset_frame, style="Surface.TFrame")
             row.pack(fill="x", pady=3)
             ttk.Checkbutton(row, variable=self.preset_enabled[fps], width=8).grid(row=0, column=0, sticky="w")
-            ttk.Label(row, text=f"{fps} versus 0", style="Surface.TLabel").grid(row=0, column=1, sticky="w")
+            ttk.Label(row, text=f"fps_max {fps} versus Uncapped", style="Surface.TLabel").grid(row=0, column=1, sticky="w")
             ttk.Spinbox(row, from_=1, to=10000, textvariable=self.preset_trials[fps], width=9).grid(row=0, column=2, sticky="e")
             row.columnconfigure(1, weight=1)
 
         self.custom_frame = self._surface(
             self.mode_holder,
             "Custom comparison",
-            "FPS A and FPS B accept any integer from 0 upward. 0 means fps_max 0.",
+            "FPS A and FPS B accept any integer from 0 upward. 0 selects Uncapped; other values use fps_max N.",
         )
         for label, variable in (
             ("FPS A", self.custom_a_var),
@@ -580,7 +581,7 @@ class C2KApp:
                 test_name = "Preset test"
             else:
                 fps_a, fps_b = engine.comparisons[0]
-                test_name = f"{fps_a} versus {fps_b}"
+                test_name = f"{fps_label(fps_a)} versus {fps_label(fps_b)}"
         return engine, delay, ResultSession.clean_name(test_name)
 
     def start_or_resume(self):
@@ -854,7 +855,7 @@ class C2KApp:
         ttk.Label(tally_numbers, text=f"RIGHT  {correct}", style="Section.TLabel").pack(side="left")
         ttk.Label(tally_numbers, text=f"WRONG  {wrong}", style="Section.TLabel").pack(side="left", padx=28)
         ttk.Label(tally_numbers, text=f"ACCURACY  {accuracy:.1f}%", style="Section.TLabel").pack(side="left")
-        ttk.Label(tally_numbers, text="Correct means the higher actual FPS. 0 is uncapped.", style="SurfaceMuted.TLabel").pack(side="right")
+        ttk.Label(tally_numbers, text="Correct means the higher actual FPS. Uncapped means fps_max 0.", style="SurfaceMuted.TLabel").pack(side="right")
         estimate = " (estimated from older file)" if data.get("duration_is_estimated") else ""
         cumulative = cumulative_duration_seconds(self.settings.results_directory)
         ttk.Label(
@@ -913,7 +914,7 @@ class C2KApp:
             "significance": "Significance",
         }
         widths = {
-            "comparison": 130,
+            "comparison": 205,
             "trials": 60,
             "a": 80,
             "b": 80,
@@ -969,17 +970,17 @@ class C2KApp:
             "trial": "Sample",
             "comparison": "Comparison",
             "initial": "Initial color",
-            "red": "RED FPS",
-            "blue": "BLUE FPS",
+            "red": "RED setting",
+            "blue": "BLUE setting",
             "chosen_color": "Chosen color",
-            "chosen_fps": "Chosen FPS",
-            "correct_fps": "Correct FPS",
+            "chosen_fps": "Chosen setting",
+            "correct_fps": "Correct setting",
             "result": "Result",
         }
         tree = ttk.Treeview(table_host, columns=columns, show="headings")
         for column in columns:
             tree.heading(column, text=headings[column])
-            tree.column(column, width=105 if column != "comparison" else 130, anchor="center", stretch=True)
+            tree.column(column, width=125 if column != "comparison" else 205, anchor="center", stretch=True)
         tree.tag_configure("right", foreground=TEXT)
         tree.tag_configure("wrong", foreground=ERROR)
         for row in (self.view_data or {}).get("results", []):
@@ -989,13 +990,13 @@ class C2KApp:
                 "end",
                 values=(
                     row["trial_number"],
-                    f'{row["fps_a"]} versus {row["fps_b"]}',
+                    f'{fps_label(row["fps_a"])} versus {fps_label(row["fps_b"])}',
                     row["initial_color"],
-                    row["red_fps"],
-                    row["blue_fps"],
+                    fps_label(row["red_fps"]),
+                    fps_label(row["blue_fps"]),
                     row["chosen_color"],
-                    row["chosen_fps"],
-                    row["correct_fps"],
+                    fps_label(row["chosen_fps"]),
+                    fps_label(row["correct_fps"]),
                     result,
                 ),
                 tags=(result.lower(),),

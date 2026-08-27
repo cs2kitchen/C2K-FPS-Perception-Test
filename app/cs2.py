@@ -200,11 +200,12 @@ def validate_paths(
 
 
 def build_placebo_cfg(red_fps: int, blue_fps: int, initial_color: str) -> str:
+    if initial_color not in ("RED", "BLUE"):
+        raise ValueError("Initial color must be RED or BLUE.")
     first_alias = "placebo_red" if initial_color == "RED" else "placebo_blue"
     return f'''unbind "o"
 unbind "l"
 
-fps_max 0
 cl_showfps 0
 cl_hud_telemetry_frametime_show 0
 r_show_build_info false
@@ -212,6 +213,7 @@ r_show_build_info false
 alias "placebo_red" "fps_max {red_fps}; say RED; alias placebo_toggle placebo_blue"
 alias "placebo_blue" "fps_max {blue_fps}; say BLUE; alias placebo_toggle placebo_red"
 alias "placebo_toggle" "{first_alias}"
+{first_alias}
 
 bind "l" "placebo_toggle"
 

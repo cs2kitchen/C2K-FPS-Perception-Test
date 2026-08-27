@@ -4,13 +4,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from app.cs2 import build_placebo_cfg, cfg_paths_for_cs2, validate_paths
+from app.cs2 import build_placebo_cfg, cfg_paths_for_cs2, validate_paths, write_placebo_cfg
 from app.results import (
     ResultSession,
     binomial_p_value,
     comparison_statistics,
     cumulative_duration_seconds,
     discover_result_sessions,
+    fps_label,
     format_duration,
 )
 from app.test_engine import TestEngine
@@ -18,6 +19,10 @@ from app.settings import AppSettings, default_game_paths
 
 
 class StatisticsTests(unittest.TestCase):
+    def test_fps_labels_distinguish_uncapped_from_limits(self):
+        self.assertEqual(fps_label(0), "Uncapped")
+        self.assertEqual(fps_label(64), "fps_max 64")
+
     def test_exact_two_sided_binomial(self):
         self.assertEqual(binomial_p_value(5, 10), 1.0)
         self.assertAlmostEqual(binomial_p_value(10, 10), 0.001953125)
@@ -37,6 +42,38 @@ class StatisticsTests(unittest.TestCase):
 
 
 class EngineTests(unittest.TestCase):
+    def test_mapping_and_initial_color_can_produce_every_combination(self):
+        outcomes = set()
+        for seed in range(100):
+            engine = TestEngine(random.Random(seed))
+            engine.configure_custom(60, 0, 1)
+            engine.resume()
+            trial = engine.next_trial()
+            outcomes.add((trial.red_fps, trial.blue_fps, trial.initial_color))
+        self.assertEqual(
+            outcomes,
+            {
+                (60, 0, "RED"),
+                (60, 0, "BLUE"),
+                (0, 60, "RED"),
+                (0, 60, "BLUE"),
+            },
+        )
+
+    def test_uncapped_assignment_is_balanced_between_red_and_blue(self):
+        engine = TestEngine(random.Random(7))
+        engine.configure_preset({64: 10})
+        engine.resume()
+        uncapped_on_red = 0
+        uncapped_on_blue = 0
+        for _ in range(10):
+            trial = engine.next_trial()
+            uncapped_on_red += trial.red_fps == 0
+            uncapped_on_blue += trial.blue_fps == 0
+            engine.record_choice("RED")
+        self.assertEqual(uncapped_on_red, 5)
+        self.assertEqual(uncapped_on_blue, 5)
+
     def test_preset_plan_and_trial_record(self):
         engine = TestEngine(random.Random(4))
         engine.configure_preset({64: 2, 144: 1})
@@ -66,25 +103,49 @@ class EngineTests(unittest.TestCase):
         engine = TestEngine(random.Random(1))
         engine.configure_custom(144, 165, 1)
         engine.resume()
-        engine.next_trial()
+        first = engine.next_trial()
         engine.pause()
         engine.resume()
         retried = engine.next_trial()
         self.assertEqual(retried.comparison_trial, 1)
+        self.assertEqual((retried.red_fps, retried.blue_fps), (first.red_fps, first.blue_fps))
         self.assertEqual(len(engine.results), 0)
 
 
 class ConfigTests(unittest.TestCase):
-    def test_cfg_starts_uncapped_and_hides_telemetry(self):
+    def test_cfg_applies_selected_start_and_arms_opposite_toggle(self):
         cfg = build_placebo_cfg(240, 360, "BLUE")
-        self.assertIn("fps_max 0", cfg)
+        lines = cfg.splitlines()
+        self.assertNotIn("fps_max 0", lines)
         self.assertIn("cl_showfps 0", cfg)
         self.assertIn("cl_hud_telemetry_frametime_show 0", cfg)
         self.assertIn("r_show_build_info false", cfg)
         self.assertIn('alias "placebo_toggle" "placebo_blue"', cfg)
+        self.assertIn('alias "placebo_blue" "fps_max 360; say BLUE; alias placebo_toggle placebo_red"', cfg)
+        self.assertEqual(lines[lines.index('alias "placebo_toggle" "placebo_blue"') + 1], "placebo_blue")
+        self.assertEqual(lines.count("placebo_blue"), 1)
+        self.assertIn('alias "reveal_truth" "say RED=240; say BLUE=360"', cfg)
         self.assertIn("game_type 1", cfg)
         self.assertIn("game_mode 2", cfg)
         self.assertIn("map de_dust2", cfg)
+
+    def test_cfg_can_apply_red_first(self):
+        lines = build_placebo_cfg(60, 0, "RED").splitlines()
+        self.assertEqual(lines[lines.index('alias "placebo_toggle" "placebo_red"') + 1], "placebo_red")
+        self.assertIn('alias "placebo_red" "fps_max 60; say RED; alias placebo_toggle placebo_blue"', lines)
+        self.assertIn('alias "placebo_blue" "fps_max 0; say BLUE; alias placebo_toggle placebo_red"', lines)
+
+    def test_trial_cfg_fully_replaces_setup_cfg(self):
+        with tempfile.TemporaryDirectory() as temp:
+            cfg_path = Path(temp) / "placebo.cfg"
+            write_placebo_cfg(cfg_path, 0, 0, "RED")
+            write_placebo_cfg(cfg_path, 0, 60, "BLUE")
+            self.assertEqual(cfg_path.read_text(encoding="utf-8"), build_placebo_cfg(0, 60, "BLUE"))
+            self.assertEqual(cfg_path.read_text(encoding="utf-8").splitlines().count("placebo_blue"), 1)
+
+    def test_cfg_rejects_unknown_initial_color(self):
+        with self.assertRaisesRegex(ValueError, "Initial color"):
+            build_placebo_cfg(60, 0, "GREEN")
 
     def test_session_saves_one_named_json_directly_in_results_folder(self):
         with tempfile.TemporaryDirectory() as temp:

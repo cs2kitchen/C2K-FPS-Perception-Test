@@ -6,7 +6,6 @@ __pycache__/
 .tools/
 dist/
 build/pyinstaller/
-build/*.spec
 placebo.cfg
 placebo_results.csv
 placebo_results.json

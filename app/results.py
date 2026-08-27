@@ -5,6 +5,11 @@ from datetime import datetime
 from pathlib import Path
 
 
+def fps_label(value: int) -> str:
+    fps = int(value)
+    return "Uncapped" if fps == 0 else f"fps_max {fps}"
+
+
 def binomial_p_value(successes: int, total: int) -> float:
     if total <= 0:
         return 1.0
@@ -41,7 +46,7 @@ def comparison_statistics(
         correct = sum(1 for row in matching if row.get("is_correct"))
         statistics.append(
             {
-                "comparison": f"{fps_a} versus {fps_b}",
+                "comparison": f"{fps_label(fps_a)} versus {fps_label(fps_b)}",
                 "fps_a": fps_a,
                 "fps_b": fps_b,
                 "trials": total,

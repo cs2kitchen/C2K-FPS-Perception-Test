@@ -10,6 +10,7 @@ class TrialPlan:
     fps_a: int
     fps_b: int
     comparison_trial: int
+    a_is_red: bool
 
 
 @dataclass(frozen=True)
@@ -52,7 +53,10 @@ class TestEngine:
             if count < 1:
                 continue
             comparisons.append((fps, 0))
-            plans.extend(TrialPlan(fps, 0, number) for number in range(1, count + 1))
+            plans.extend(
+                TrialPlan(fps, 0, number, a_is_red)
+                for number, a_is_red in enumerate(self._balanced_assignments(count), start=1)
+            )
         if not plans:
             raise ValueError("Enable at least one FPS comparison.")
         self._configure("preset", plans, comparisons)
@@ -64,8 +68,18 @@ class TestEngine:
             raise ValueError("FPS A and FPS B must be different.")
         if trials < 1:
             raise ValueError("Number of trials must be at least 1.")
-        plans = [TrialPlan(fps_a, fps_b, number) for number in range(1, trials + 1)]
+        plans = [
+            TrialPlan(fps_a, fps_b, number, a_is_red)
+            for number, a_is_red in enumerate(self._balanced_assignments(trials), start=1)
+        ]
         self._configure("custom", plans, [(fps_a, fps_b)])
+
+    def _balanced_assignments(self, count: int) -> list[bool]:
+        assignments = [True] * (count // 2) + [False] * (count // 2)
+        if count % 2:
+            assignments.append(self.rng.choice((True, False)))
+        self.rng.shuffle(assignments)
+        return assignments
 
     def _configure(
         self,
@@ -97,7 +111,7 @@ class TestEngine:
             return None
 
         plan = self.plans[self.index]
-        if self.rng.choice((True, False)):
+        if plan.a_is_red:
             red_fps, blue_fps = plan.fps_a, plan.fps_b
         else:
             red_fps, blue_fps = plan.fps_b, plan.fps_a
